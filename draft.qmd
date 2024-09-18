@@ -1,0 +1,154 @@
+---
+title: "Untitled"
+format: html
+---
+
+```{r setup}
+library(ggplot2)
+```
+
+## Perguntas
+
+1. Quantas escolas temos no Brasil?
+
+2. Qual o número de estudantes matriculados?
+
+3. Qual a taxa de alunos por escola?
+
+4. Qual a proporção de escolas com água, energia elétrica e acesso à internet? 
+
+## Importação
+
+Base dos dados: https://basedosdados.org/
+
+Bigquery + R: https://www.infoworld.com/article/2266956/how-to-use-r-with-bigquery.html
+
+
+```{r}
+con <- DBI::dbConnect(
+  bigrquery::bigquery(),
+  project = "basedosdados",
+  dataset = "br_inep_censo_escolar",
+  billing = "basedosdados-436013"
+)
+
+# DBI::dbListTables(con)
+```
+
+## Quantas escolas temos no Brasil?
+
+### No geral, em 2023
+
+```{r}
+# dplyr::tbl(con, "escola")
+
+dplyr::tbl(con, "escola") |>
+  dplyr::filter(ano == max(ano, na.rm = TRUE)) |>
+  dplyr::summarise(n = dplyr::n())
+
+dplyr::tbl(con, "escola") |>
+  dplyr::filter(ano == max(ano, na.rm = TRUE)) |>
+  dplyr::distinct(id_escola) |>
+  dplyr::summarise(n = dplyr::n())
+```
+
+### Ao longo dos anos
+
+```{r}
+tab <- dplyr::tbl(con, "escola") |>
+  dplyr::group_by(ano) |>
+  dplyr::summarise(n = dplyr::n()) |>
+  dplyr::collect()
+
+tab |>
+  ggplot(aes(x = ano, y = n)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(2007, 2023, 2)) +
+  theme_minimal()
+```
+
+- Por que existe um salto de 2010 para 2011?
+- Por que o número de escolas está caindo?
+
+### Por rede escolar
+
+```{r}
+dic_rede <- dplyr::tbl(con, "dicionario") |> 
+  dplyr::filter(id_tabela == "escola", nome_coluna == "rede") |> 
+  dplyr::select(rede = chave, rede_nome = valor) |> 
+  dplyr::collect()
+```
+
+```{r}
+tab <- dplyr::tbl(con, "escola") |>
+  dplyr::group_by(ano, rede) |>
+  dplyr::summarise(n = dplyr::n()) |>
+  dplyr::collect()
+
+tab |> 
+  dplyr::left_join(dic_rede, by = "rede") |> 
+  ggplot(aes(x = ano, y = n, color = rede_nome)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(2007, 2023, 2)) +
+  theme_minimal()
+```
+
+- Por que o número de escolas municipais tem esse comportamento ao longo dos anos?
+
+### Por etapa de ensino
+
+Educação básica
+
+```{r}
+tab <- dplyr::tbl(con, "escola") |>
+  dplyr::filter(educacao_basica == 1) |> 
+  dplyr::group_by(ano, rede) |>
+  dplyr::summarise(n = dplyr::n()) |>
+  dplyr::collect()
+
+tab |> 
+  dplyr::left_join(dic_rede, by = "rede") |> 
+  ggplot(aes(x = ano, y = n, color = rede_nome)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(2007, 2023, 2)) +
+  theme_minimal()
+```
+
+Ensino profissional
+
+```{r}
+tab <- dplyr::tbl(con, "escola") |>
+  dplyr::filter(etapa_ensino_profissional == 1) |> 
+  dplyr::group_by(ano, rede) |>
+  dplyr::summarise(n = dplyr::n()) |>
+  dplyr::collect()
+
+tab |> 
+  dplyr::left_join(dic_rede, by = "rede") |> 
+  ggplot(aes(x = ano, y = n, color = rede_nome)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(2007, 2023, 2)) +
+  theme_minimal()
+```
+
+EJA
+
+```{r}
+tab <- dplyr::tbl(con, "escola") |>
+  dplyr::filter(etapa_ensino_eja == 1) |> 
+  dplyr::group_by(ano, rede) |>
+  dplyr::summarise(n = dplyr::n()) |>
+  dplyr::collect()
+
+tab |> 
+  dplyr::left_join(dic_rede, by = "rede") |> 
+  ggplot(aes(x = ano, y = n, color = rede_nome)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(2007, 2023, 2)) +
+  theme_minimal()
+```
