@@ -152,3 +152,116 @@ tab |>
   scale_x_continuous(breaks = seq(2007, 2023, 2)) +
   theme_minimal()
 ```
+
+## Qual o número de estudantes matriculados?
+
+No geral
+
+```{r}
+dplyr::tbl(con, "matricula") |> 
+  dplyr::filter(ano == max(ano, na.rm = TRUE)) |> 
+  dplyr::summarise(n = dplyr::n())
+```
+
+Ao longo do tempo
+
+```{r}
+tab <- dplyr::tbl(con, "matricula") |> 
+  dplyr::group_by(ano) |> 
+  dplyr::summarise(
+    n = dplyr::n()
+  ) |> 
+  dplyr::collect()
+
+saveRDS(tab, "data/tab_matriculas_ano.rds")
+
+tab |> 
+  ggplot(aes(x = ano, y = n)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(2007, 2023, 2)) +
+  scale_y_continuous(
+    labels = prettyunits::pretty_num
+  ) +
+  theme_minimal()
+```
+
+- Por que o número de matrículas está caindo?
+- Isso reflete a realidade ou é uma questão dos dados?
+
+Por rede
+
+```{r}
+dic_rede <- dplyr::tbl(con, "dicionario") |> 
+  dplyr::filter(id_tabela == "matricula", nome_coluna == "rede") |> 
+  dplyr::select(rede = chave, rede_nome = valor) |> 
+  dplyr::collect()
+
+tab <- dplyr::tbl(con, "matricula") |> 
+  dplyr::group_by(ano, rede) |> 
+  dplyr::summarise(
+    n = dplyr::n()
+  ) |> 
+  dplyr::collect()
+
+saveRDS(tab, "data/tab_matriculas_rede.rds")
+
+tab |> 
+  dplyr::left_join(
+    dic_rede,
+    by = "rede"
+  ) |> 
+  ggplot(aes(x = ano, y = n, color = rede_nome)) +
+  geom_line() +
+  geom_point() +
+  scale_x_continuous(breaks = seq(2007, 2023, 2)) +
+  scale_y_continuous(
+    labels = prettyunits::pretty_num
+  ) +
+  theme_minimal()
+```
+
+- Como ficaria por etapa de ensino?
+ 
+## Qual a taxa de alunos por escola?
+
+No geral
+
+```{r}
+num_matriculas / num_escolas
+```
+
+Por estado
+
+```{r}
+tab_escolas <- dplyr::tbl(con, "escola") |>
+  dplyr::group_by(sigla_uf) |> 
+  dplyr::summarise(n = dplyr::n()) |> 
+  dplyr::collect()
+
+tab_matriculas <- dplyr::tbl(con, "matricula") |> 
+  dplyr::group_by(sigla_uf) |> 
+  dplyr::summarise(n = dplyr::n()) |> 
+  dplyr::collect()
+
+saveRDS(tab_matriculas, "data/tab_matriculas_uf.rds")
+
+tab_escolas |> 
+  dplyr::rename(n_escolas = n) |> 
+  dplyr::left_join(tab_matriculas |> dplyr::rename(n_matriculas = n), by = "sigla_uf") |> 
+  dplyr::mutate(
+    taxa = n_matriculas / n_escolas,
+    sigla_uf = forcats::fct_reorder(sigla_uf, taxa, .desc = TRUE)
+  ) |> 
+  ggplot(aes(x = taxa, y = sigla_uf)) +
+  geom_col(fill = "royalblue") +
+  theme_minimal()
+
+```
+
+## Qual a proporção de escolas com água, energia elétrica e acesso à internet?
+
+```{r}
+
+```
+
