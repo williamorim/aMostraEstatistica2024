@@ -1,0 +1,45 @@
+---
+title: "17ª aMostra Estatística IME - USP"
+format: html
+---
+
+## Perguntas
+
+1. Quantas escolas temos no Brasil?
+
+2. Qual o número de estudantes matriculados?
+
+3. Qual a taxa de alunos por escola?
+
+4. Qual a proporção de escolas com água, energia elétrica e acesso à internet? 
+
+## Importação
+
+Base dos dados: https://basedosdados.org/
+Censo escolar: https://basedosdados.org/dataset/dae21af4-4b6a-42f4-b94a-4c2061ea9de5?table=cf9586ad-a168-40c1-97f9-86083ba4409f
+
+Bigquery + R: https://www.infoworld.com/article/2266956/how-to-use-r-with-bigquery.html
+
+
+```{r, eval = FALSE}
+con <- DBI::dbConnect(
+  bigrquery::bigquery(),
+  project = "basedosdados",
+  dataset = "br_inep_censo_escolar",
+  billing = "basedosdados-436013"
+)
+
+# DBI::dbListTables(con)
+```
+
+## Quantas escolas temos no Brasil?
+
+
+## Qual o número de estudantes matriculados?
+ 
+
+## Qual a taxa de alunos por escola?
+
+
+## Qual a proporção de escolas com água, energia elétrica e acesso à internet?
+
