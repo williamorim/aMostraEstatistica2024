@@ -12,3 +12,5 @@ Quarto: https://quarto.org/
 dplyr: https://dplyr.tidyverse.org/
 
 ggplot2: https://ggplot2.tidyverse.org/
+
+https://www.youtube.com/channel/UCPzA7lZCeFiafe9V9bamISw
