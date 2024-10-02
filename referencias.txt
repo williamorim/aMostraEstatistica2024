@@ -1,0 +1,14 @@
+Positron: https://github.com/posit-dev/positron
+
+Zen do R: https://curso-r.github.io/zen-do-r/
+
+Base dos dados: https://basedosdados.org/
+Base censo escolar: https://basedosdados.org/dataset/dae21af4-4b6a-42f4-b94a-4c2061ea9de5?table=cf9586ad-a168-40c1-97f9-86083ba4409f
+
+Bigquery + R: https://www.infoworld.com/article/2266956/how-to-use-r-with-bigquery.html
+
+Quarto: https://quarto.org/
+
+dplyr: https://dplyr.tidyverse.org/
+
+ggplot2: https://ggplot2.tidyverse.org/
