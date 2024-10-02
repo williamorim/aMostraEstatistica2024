@@ -34,12 +34,97 @@ con <- DBI::dbConnect(
 
 ## Quantas escolas temos no Brasil?
 
+Em 2023.
+
+```{r}
+dplyr::tbl(con, "escola") |> 
+  dplyr::filter(ano == max(ano, na.rm = TRUE)) |> 
+  dplyr::distinct(ano)
+
+n_escolas <- dplyr::tbl(con, "escola") |> 
+  dplyr::filter(ano == 2023) |> 
+  # dplyr::distinct(id_escola) |> 
+  dplyr::summarise(n = dplyr::n()) |> 
+  dplyr::collect()
+```
+
+Ao longo tempo
+
+```{r}
+tab_escolas_ano <- dplyr::tbl(con, "escola") |> 
+  dplyr::group_by(ano) |> 
+  dplyr::summarise(
+    n_escolas = dplyr::n()
+  ) |> 
+  dplyr::collect()
+
+tab_escolas_ano |> 
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x = ano, y = n_escolas)) +
+  ggplot2::theme_minimal()
+```
+
+Por rede 
+
+```{r}
+ tab_depara_rede <- dplyr::tbl(con, "dicionario") |>
+   dplyr::filter(
+    id_tabela == "escola",
+    nome_coluna == "rede"
+   ) |> 
+    dplyr::select(chave, valor) |> 
+    dplyr::collect()
+
+tab_escolas_ano_rede <- dplyr::tbl(con, "escola") |> 
+  dplyr::group_by(ano, rede) |> 
+   dplyr::summarise(n = dplyr::n()) |> 
+   dplyr::collect()
+
+tab_escolas_ano_rede |> 
+  dplyr::left_join(
+    tab_depara_rede,
+    by = c("rede" = "chave")
+  ) |> 
+  ggplot2::ggplot() +
+  ggplot2::geom_line(ggplot2::aes(x = ano, y = n, color = valor)) +
+  ggplot2::scale_colour_manual(
+    values = c("red", "blue", "orange", "#30783b")
+  ) +
+  ggplot2::theme_minimal()
+```
+
+Por etapa de ensino: lição de casa
 
 ## Qual o número de estudantes matriculados?
  
+Em 2020
+
+```{r}
+readRDS("data/tab_matriculas_ano.rds")
+```
+
+ ```{r}
+dplyr::tbl(con, "matricula") |> 
+  dplyr::filter(ano == max(ano, na.rm = TRUE)) |> 
+  dplyr::summarise(n = dplyr::n())
+
+ n_matriculas <- dplyr::tbl(con, "matricula") |> 
+  dplyr::filter(ano == 2020) |> 
+  dplyr::summarise(n = dplyr::n()) |> 
+  dplyr::collect()
+
+n_matriculas
+ ```
 
 ## Qual a taxa de alunos por escola?
+
+```{r}
+
+```
 
 
 ## Qual a proporção de escolas com água, energia elétrica e acesso à internet?
 
+```{r}
+
+```
